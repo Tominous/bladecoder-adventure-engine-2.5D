@@ -75,8 +75,8 @@ public class ScenePointer {
 	public void drag(SpriteActor a) {
 		draggingActor = a;
 		tmpTint.set(DRAG_NOT_HOTSPOT_COLOR);
-		
-		if(a != null && draggingActor.getTint() != null)
+
+		if (a != null && draggingActor.getTint() != null)
 			tmpTint.mul(draggingActor.getTint());
 	}
 
@@ -137,8 +137,10 @@ public class ScenePointer {
 			font.draw(batch, layout, textX, textY);
 		}
 
+		// batch.setColor(Color.WHITE);
+
 		if (draggingActor == null) {
-			if (!multiTouch || currentIcon == leaveIcon) {
+			if (!multiTouch || (currentIcon == leaveIcon && Gdx.input.isTouched())) {
 
 				batch.draw(currentIcon, mousepos.x - currentIcon.getRegionWidth() / 2,
 						mousepos.y - currentIcon.getRegionHeight() / 2, currentIcon.getRegionWidth() / 2,

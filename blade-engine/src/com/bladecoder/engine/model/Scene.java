@@ -56,12 +56,12 @@ public class Scene implements Serializable, AssetConsumer {
 	/**
 	 * All actors in the scene
 	 */
-	private Map<String, BaseActor> actors = new ConcurrentHashMap<String, BaseActor>();
+	private Map<String, BaseActor> actors = new ConcurrentHashMap<>();
 
 	/**
 	 * BaseActor layers
 	 */
-	private List<SceneLayer> layers = new ArrayList<SceneLayer>();
+	private List<SceneLayer> layers = new ArrayList<>();
 
 	private Timers timers = new Timers();
 
@@ -104,7 +104,7 @@ public class Scene implements Serializable, AssetConsumer {
 	private final TextManager textManager;
 
 	private World w;
-	
+
 	/** The current walkzone actor */
 	private String walkZone;
 
@@ -205,15 +205,6 @@ public class Scene implements Serializable, AssetConsumer {
 	}
 
 	public void update(float delta) {
-		// We draw the elements in order: from top to bottom.
-		// so we need to order the array list
-		for (SceneLayer layer : layers)
-			layer.update();
-
-		for (BaseActor a : actors.values()) {
-			a.update(delta);
-		}
-
 		camera.update(delta);
 
 		if (followActor != null) {
@@ -222,6 +213,19 @@ public class Scene implements Serializable, AssetConsumer {
 
 		timers.update(delta);
 		textManager.update(delta);
+
+		for (BaseActor a : actors.values()) {
+			// stops if scene has changed, ex. a Leave has been done in some actor update.
+			if (w.getCurrentScene() != this)
+				break;
+
+			a.update(delta);
+		}
+
+		// We draw the elements in order: from top to bottom.
+		// so we need to order the array list
+		for (SceneLayer layer : layers)
+			layer.update();
 	}
 
 	public void draw(SpriteBatch batch) {
@@ -299,7 +303,7 @@ public class Scene implements Serializable, AssetConsumer {
 
 	public BaseActor getActor(String id, boolean searchInventory) {
 
-		if (VAR_PLAYER.equals(id))
+		if (VAR_PLAYER.equals(id) && player != null)
 			return actors.get(player);
 
 		BaseActor a = id == null ? null : actors.get(id);
@@ -579,11 +583,11 @@ public class Scene implements Serializable, AssetConsumer {
 	public SceneSoundManager getSoundManager() {
 		return soundManager;
 	}
-	
+
 	public void calcWalkzone() {
 		if (walkZone != null) {
 			polygonalNavGraph.createInitialGraph(actors.get(walkZone), actors.values());
-		}		
+		}
 	}
 
 	@Override
@@ -604,7 +608,7 @@ public class Scene implements Serializable, AssetConsumer {
 		// CALC WALK GRAPH
 		calcWalkzone();
 	}
-	
+
 	@Override
 	public void retrieveAssets() {
 
@@ -737,7 +741,7 @@ public class Scene implements Serializable, AssetConsumer {
 
 		if (player != null)
 			json.writeValue("player", player);
-		
+
 		json.writeValue("walkZone", walkZone);
 	}
 
@@ -771,29 +775,29 @@ public class Scene implements Serializable, AssetConsumer {
 			musicDesc = json.readValue("musicDesc", MusicDesc.class, jsonData);
 
 			depthVector = json.readValue("depthVector", Vector2.class, jsonData);
-			
-			if(jsonData.get("polygonalNavGraph") != null) {
-				
+
+			if (jsonData.get("polygonalNavGraph") != null) {
+
 				JsonValue jsonValuePNG = jsonData.get("polygonalNavGraph");
-				
+
 				float worldScale = EngineAssetManager.getInstance().getScale();
 
 				Polygon walkZonePol = json.readValue("walkZone", Polygon.class, jsonValuePNG);
 				walkZonePol.setScale(worldScale, worldScale);
 				walkZonePol.setPosition(walkZonePol.getX() * worldScale, walkZonePol.getY() * worldScale);
-				
+
 				WalkZoneActor wz = new WalkZoneActor();
 				wz.setId("walkzone");
 				wz.bbox.setVertices(walkZonePol.getVertices());
 				wz.bbox.setScale(walkZonePol.getScaleX(), walkZonePol.getScaleY());
-				wz.bbox.setPosition(walkZonePol.getX(), walkZonePol.getY());			
+				wz.bbox.setPosition(walkZonePol.getX(), walkZonePol.getY());
 				wz.setScene(this);
 				wz.setInitScene(id);
-				
+
 				actors.put(wz.getId(), wz);
 				walkZone = wz.getId();
 			}
-			
+
 			sceneSize = json.readValue("sceneSize", Vector2.class, jsonData);
 
 		} else {
@@ -849,8 +853,8 @@ public class Scene implements Serializable, AssetConsumer {
 		verbs.read(json, jsonData);
 		state = json.readValue("state", String.class, jsonData);
 		player = json.readValue("player", String.class, jsonData);
-		
-		if(jsonData.get("walkZone") != null)
+
+		if (jsonData.get("walkZone") != null)
 			walkZone = json.readValue("walkZone", String.class, jsonData);
 	}
 }

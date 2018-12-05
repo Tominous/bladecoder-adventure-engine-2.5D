@@ -66,6 +66,7 @@ import com.bladecoder.engine.model.World;
 import com.bladecoder.engine.model.World.AssetState;
 import com.bladecoder.engine.model.WorldListener;
 import com.bladecoder.engine.ui.DialogUI;
+import com.bladecoder.engine.ui.ITextManagerUI;
 import com.bladecoder.engine.ui.InventoryButton;
 import com.bladecoder.engine.ui.InventoryUI;
 import com.bladecoder.engine.ui.InventoryUI.InventoryPos;
@@ -76,7 +77,6 @@ import com.bladecoder.engine.ui.SceneFitViewport;
 import com.bladecoder.engine.ui.SceneScreen;
 import com.bladecoder.engine.ui.TesterBot;
 import com.bladecoder.engine.ui.TextManagerUI;
-import com.bladecoder.engine.ui.ITextManagerUI;
 import com.bladecoder.engine.ui.UI;
 import com.bladecoder.engine.ui.UI.Screens;
 import com.bladecoder.engine.util.Config;
@@ -155,7 +155,7 @@ public class DefaultSceneScreen implements SceneScreen {
 			else {
 				getInputUnProject(unprojectTmp);
 
-				if (w.inCutMode() || (!w.inCutMode() && !TextManager.AUTO_HIDE_TEXTS && textManagerUI.isVisible())) {
+				if (w.inCutMode() || (!TextManager.AUTO_HIDE_TEXTS && textManagerUI.isVisible())) {
 
 					if (recorder.isRecording())
 						return true;
@@ -364,6 +364,7 @@ public class DefaultSceneScreen implements SceneScreen {
 		fastLeave = Config.getProperty(Config.FAST_LEAVE, false);
 	}
 
+	@Override
 	public UI getUI() {
 		return ui;
 	}
@@ -446,10 +447,12 @@ public class DefaultSceneScreen implements SceneScreen {
 	 * @param s
 	 *            The multiplier speed. ej. 2.0
 	 */
+	@Override
 	public void setSpeed(float s) {
 		speed = s;
 	}
 
+	@Override
 	public float getSpeed() {
 		return speed;
 	}
@@ -469,7 +472,7 @@ public class DefaultSceneScreen implements SceneScreen {
 
 		if (world.getAssetState() != AssetState.LOADED) {
 
-			resetUI();
+			updateUI();
 
 			if (assetState == AssetState.LOAD_ASSETS || assetState == AssetState.LOAD_ASSETS_AND_INIT_SCENE) {
 				// update() to set LOADING state
@@ -513,17 +516,7 @@ public class DefaultSceneScreen implements SceneScreen {
 				inventoryUI.screenToLocalCoordinates(unproject2Tmp);
 				actorUnderCursor = inventoryUI.getItemAt(unproject2Tmp.x, unproject2Tmp.y);
 			} else {
-
-				final float tolerance;
-
-				if (inventoryUI.isDragging())
-					tolerance = DPIUtils.getTouchMinSize();
-				else if (Gdx.input.isPeripheralAvailable(Peripheral.MultitouchScreen))
-					tolerance = DPIUtils.getTouchMinSize() / 2;
-				else
-					tolerance = 0;
-
-				actorUnderCursor = world.getInteractiveActorAtInput(viewport, tolerance);
+				actorUnderCursor = getActorUnderCursor();
 			}
 
 			// UPDATE POINTER
@@ -563,6 +556,19 @@ public class DefaultSceneScreen implements SceneScreen {
 				currentActor = actorUnderCursor;
 			}
 		}
+	}
+
+	private InteractiveActor getActorUnderCursor() {
+		final float tolerance;
+
+		if (inventoryUI.isDragging())
+			tolerance = DPIUtils.getTouchMinSize();
+		else if (Gdx.input.isPeripheralAvailable(Peripheral.MultitouchScreen))
+			tolerance = DPIUtils.getTouchMinSize() / 2;
+		else
+			tolerance = 0;
+
+		return ui.getWorld().getInteractiveActorAtInput(viewport, tolerance);
 	}
 
 	/**
@@ -801,7 +807,7 @@ public class DefaultSceneScreen implements SceneScreen {
 			viewport.update(width, height, true);
 		}
 
-		resetUI();
+		updateUI();
 
 		pie.resize(viewport.getScreenWidth(), viewport.getScreenHeight());
 		inventoryUI.resize(viewport.getScreenWidth(), viewport.getScreenHeight());
@@ -816,6 +822,7 @@ public class DefaultSceneScreen implements SceneScreen {
 				stage.getViewport().getScreenHeight() - menuButton.getHeight() - margin);
 	}
 
+	@Override
 	public void dispose() {
 		renderer.dispose();
 		stage.dispose();
@@ -833,6 +840,8 @@ public class DefaultSceneScreen implements SceneScreen {
 
 		Scene s = w.getCurrentScene();
 		CharacterActor player = s.getPlayer();
+
+		currentActor = getActorUnderCursor();
 
 		if (currentActor != null) {
 
@@ -870,6 +879,7 @@ public class DefaultSceneScreen implements SceneScreen {
 		}
 	}
 
+	@Override
 	public void actorClick(InteractiveActor a, int button) {
 		final boolean lookatButton = button == 1;
 
@@ -917,6 +927,7 @@ public class DefaultSceneScreen implements SceneScreen {
 	 * @param verb
 	 * @param target
 	 */
+	@Override
 	public void runVerb(InteractiveActor a, String verb, String target) {
 		// COMMENTED BECAUSE THE INVENTORY ONLY HIDES WHEN CUTMODE
 		// if (inventoryUI.isVisible())
@@ -932,17 +943,6 @@ public class DefaultSceneScreen implements SceneScreen {
 	private void showMenu() {
 		pause();
 		ui.setCurrentScreen(Screens.MENU_SCREEN);
-	}
-
-	private void resetUI() {
-		if (pie.isVisible()) {
-			pie.hide();
-		}
-
-		pointer.reset();
-		inventoryUI.cancelDragging();
-
-		currentActor = null;
 	}
 
 	public InventoryUI getInventoryUI() {
@@ -986,7 +986,6 @@ public class DefaultSceneScreen implements SceneScreen {
 
 	@Override
 	public void show() {
-
 		final InputMultiplexer multiplexer = new InputMultiplexer();
 		multiplexer.addProcessor(stage);
 		multiplexer.addProcessor(inputProcessor);
@@ -1012,7 +1011,7 @@ public class DefaultSceneScreen implements SceneScreen {
 	@Override
 	public void hide() {
 		ui.getWorld().pause();
-		resetUI();
+		updateUI();
 		// dispose();
 	}
 
@@ -1032,10 +1031,12 @@ public class DefaultSceneScreen implements SceneScreen {
 		}
 	}
 
+	@Override
 	public Viewport getViewport() {
 		return viewport;
 	}
 
+	@Override
 	public InteractiveActor getCurrentActor() {
 		return currentActor;
 	}
@@ -1064,6 +1065,7 @@ public class DefaultSceneScreen implements SceneScreen {
 		pie.setVisible(false);
 
 		menuButton.addListener(new ClickListener() {
+			@Override
 			public void clicked(InputEvent event, float x, float y) {
 				ui.setCurrentScreen(Screens.MENU_SCREEN);
 			}

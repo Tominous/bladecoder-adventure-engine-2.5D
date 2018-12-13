@@ -1,6 +1,7 @@
 /*******************************************************************************
  * Copyright 2014 Rafael Garcia Moreno.
- * 
+ * Copyright 2018 Yzubi.
+ 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -109,7 +110,8 @@ public class Sprite3DRenderer extends AnimationRenderer {
 
 	private float lastAnimationTime = 0;
 
-	private boolean renderShadow = true;
+//* Changed to false
+	private boolean renderShadow = false;
 
 	class ModelCacheEntry extends CacheEntry {
 		ModelInstance modelInstance;
@@ -160,6 +162,8 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	/**
 	 * Generates the Shadow Map
 	 */
+	 
+
 	private void genShadowMap() {
 		updateViewport();
 
@@ -179,14 +183,14 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		if (currentSource != null) {
 
 			ModelCacheEntry cs = (ModelCacheEntry) currentSource;
-
+/* Disable shadow modification
 			// DRAW SHADOW
 			if (renderShadow) {
 				floorBatch.begin(cs.camera3d);
 				floorBatch.render(Utils3D.getFloor(), shadowEnvironment);
 				floorBatch.end();
 			}
-
+*/
 			// DRAW MODEL
 			modelBatch.begin(cs.camera3d);
 
@@ -412,6 +416,17 @@ public class Sprite3DRenderer extends AnimationRenderer {
 			Vector2 tmp = new Vector2(pf);
 			float angle = tmp.sub(p0).angle() + 90;
 			lookat(angle);
+			/* Added */
+		if (angle>180 && angle<360) {
+			angle = 180;
+			lookat(angle);
+			/*this.width = 500;*/
+			/*this.height = 500;*/
+		} else
+			angle = 0;
+			lookat(angle);
+			/*this.width = 500;*/
+			/*this.height = -500;*/
 		}
 	}
 

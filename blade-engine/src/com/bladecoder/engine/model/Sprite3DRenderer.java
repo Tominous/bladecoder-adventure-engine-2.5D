@@ -77,7 +77,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	private TextureRegion tex;
 
 	private Environment environment;
-	private Environment shadowEnvironment;
 
 	private FrameBuffer fb = null;
 
@@ -93,14 +92,11 @@ public class Sprite3DRenderer extends AnimationRenderer {
 
 	// CREATE STATIC BATCHS FOR EFICIENCY
 	private static ModelBatch modelBatch;
-	private static ModelBatch shadowBatch;
 	private static ModelBatch floorBatch;
 
 	// TODO Move shadowLight to static for memory eficiency.
 	// This implies that the shadow must be calculated in the draw method and
 	// not in the update
-	private final DirectionalShadowLight shadowLight = (DirectionalShadowLight) new DirectionalShadowLight(1024, 1024,
-			30f, 30f, 1f, 100f).set(1f, 1f, 1f, 0.01f, -1f, 0.01f);
 
 	PointLight celLight;
 
@@ -109,9 +105,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	private ActionCallback animationCb = null;
 
 	private float lastAnimationTime = 0;
-
-//* Changed to false
-	private boolean renderShadow = false;
 
 	class ModelCacheEntry extends CacheEntry {
 		ModelInstance modelInstance;
@@ -162,35 +155,11 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	/**
 	 * Generates the Shadow Map
 	 */
-	 
-
-	private void genShadowMap() {
-		updateViewport();
-
-		ModelCacheEntry cs = (ModelCacheEntry) currentSource;
-
-		shadowLight.begin(Vector3.Zero, cs.camera3d.direction);
-		shadowBatch.begin(shadowLight.getCamera());
-		shadowBatch.render(cs.modelInstance);
-		shadowBatch.end();
-		shadowLight.end();
-
-		Gdx.graphics.getGL20().glViewport((int) VIEWPORT.x, (int) VIEWPORT.y, (int) VIEWPORT.width,
-				(int) VIEWPORT.height);
-	}
 
 	private void drawModel() {
 		if (currentSource != null) {
 
 			ModelCacheEntry cs = (ModelCacheEntry) currentSource;
-/* Disable shadow modification
-			// DRAW SHADOW
-			if (renderShadow) {
-				floorBatch.begin(cs.camera3d);
-				floorBatch.render(Utils3D.getFloor(), shadowEnvironment);
-				floorBatch.end();
-			}
-*/
 			// DRAW MODEL
 			modelBatch.begin(cs.camera3d);
 
@@ -472,10 +441,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 			cs.controller.update(delta);
 			lastAnimationTime += delta;
 
-			// GENERATE SHADOW MAP
-			if (renderShadow)
-				genShadowMap();
-
 			if (USE_FBO)
 				renderTex();
 		}
@@ -563,12 +528,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		}
 
 		environment.add(celLight);
-
-		if (renderShadow) {
-			shadowEnvironment = new Environment();
-			shadowEnvironment.add(shadowLight);
-			shadowEnvironment.shadowMap = shadowLight;
-		}
 	}
 
 	private static void updateViewport() {
@@ -590,8 +549,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		modelConfigShader.numSpotLights = 0;
 
 		modelBatch = new ModelBatch(new DefaultShaderProvider(modelConfigShader));
-
-		shadowBatch = new ModelBatch(new DepthShaderProvider());
 		floorBatch = new ModelBatch(new DefaultShaderProvider(Gdx.files.classpath(VERTEX_SHADER),
 				Gdx.files.classpath(FLOOR_FRAGMENT_SHADER)));
 	}
@@ -690,9 +647,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 				lookat(modelRotation);
 		}
 
-		if (currentSource != null && renderShadow)
-			genShadowMap();
-
 		if (USE_FBO) {
 			GLFrameBuffer.FrameBufferBuilder frameBufferBuilder = new GLFrameBuffer.FrameBufferBuilder(width, height);
 
@@ -718,7 +672,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		sourceCache.clear();
 		currentSource = null;
 		environment = null;
-		shadowEnvironment = null;
 
 		if (USE_FBO)
 			fb.dispose();
@@ -730,10 +683,7 @@ public class Sprite3DRenderer extends AnimationRenderer {
 			return;
 
 		modelBatch.dispose();
-		shadowBatch.dispose();
-		floorBatch.dispose();
-
-		modelBatch = shadowBatch = floorBatch = null;
+		modelBatch = null;
 	}
 
 	@Override
@@ -749,7 +699,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 			json.writeValue("cameraRot", cameraRot, cameraRot == null ? null : Vector3.class);
 			json.writeValue("cameraName", cameraName, cameraName == null ? null : String.class);
 			json.writeValue("cameraFOV", cameraFOV);
-			json.writeValue("renderShadow", renderShadow);
 		} else {
 
 			if (animationCb != null)
@@ -782,7 +731,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 			cameraRot = json.readValue("cameraRot", Vector3.class, jsonData);
 			cameraName = json.readValue("cameraName", String.class, jsonData);
 			cameraFOV = json.readValue("cameraFOV", Float.class, jsonData);
-			renderShadow = json.readValue("renderShadow", Boolean.class, jsonData);
 		} else {
 
 			animationCb = ActionCallbackSerializer.find(bjson.getWorld(),

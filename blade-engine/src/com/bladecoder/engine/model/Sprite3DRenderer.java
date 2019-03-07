@@ -63,7 +63,6 @@ import com.bladecoder.engine.util.Utils3D;
 public class Sprite3DRenderer extends AnimationRenderer {
 
 	private static final String FRAGMENT_SHADER = "com/bladecoder/engine/shading/cel.fragment.glsl";
-	private static final String FLOOR_FRAGMENT_SHADER = "com/bladecoder/engine/shading/floor.fragment.glsl";
 	private static final String VERTEX_SHADER = "com/bladecoder/engine/shading/cel.vertex.glsl";
 	private final static boolean USE_FBO = false;
 	private final static int MAX_BONES = 40;
@@ -92,7 +91,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 
 	// CREATE STATIC BATCHS FOR EFICIENCY
 	private static ModelBatch modelBatch;
-	private static ModelBatch floorBatch;
 
 	// TODO Move shadowLight to static for memory eficiency.
 	// This implies that the shadow must be calculated in the draw method and
@@ -551,8 +549,6 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		modelConfigShader.defaultCullFace = 0;
 
 		modelBatch = new ModelBatch(new DefaultShaderProvider(modelConfigShader));
-		floorBatch = new ModelBatch(new DefaultShaderProvider(Gdx.files.classpath(VERTEX_SHADER),
-				Gdx.files.classpath(FLOOR_FRAGMENT_SHADER)));
 	}
 
 	private void loadSource(String source) {

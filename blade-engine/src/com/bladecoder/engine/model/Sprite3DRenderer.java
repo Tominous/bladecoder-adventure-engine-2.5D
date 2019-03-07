@@ -547,6 +547,8 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		modelConfigShader.numDirectionalLights = 0;
 		modelConfigShader.numPointLights = 0;
 		modelConfigShader.numSpotLights = 0;
+		// DISABLE BACKFACE CULLING
+		modelConfigShader.defaultCullFace = 0;
 
 		modelBatch = new ModelBatch(new DefaultShaderProvider(modelConfigShader));
 		floorBatch = new ModelBatch(new DefaultShaderProvider(Gdx.files.classpath(VERTEX_SHADER),

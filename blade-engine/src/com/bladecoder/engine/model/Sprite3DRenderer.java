@@ -80,7 +80,7 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	private FrameBuffer fb = null;
 
 	private int width = 200, height = 200;
-
+        private float flipped = 1f;
 	private Vector3 cameraPos;
 	private Vector3 cameraRot;
 	private String cameraName = "Camera";
@@ -382,10 +382,12 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		if (currentAnimation != null) {
 			Vector2 tmp = new Vector2(pf);
 			float angle = tmp.sub(p0).angle() + 90;
+                        flipped = 1f;
 			lookat(angle);
 			/* Added */
 		if (angle>180 && angle<360) {
 			angle = 180;
+                        flipped = -1f;
 			lookat(angle);
 			/*this.width = 500;*/
 			/*this.height = 500;*/
@@ -404,17 +406,17 @@ public class Sprite3DRenderer extends AnimationRenderer {
 			lookat(180);
 		if (dir.equals(FRONT))
 			lookat(0);
-		else if (dir.equals(LEFT))
+		if (dir.equals(LEFT))
 			dir=BACK;
-		else if (dir.equals(RIGHT))
+		if (dir.equals(RIGHT))
 			dir=FRONT;
-		else if (dir.equals(BACKLEFT))
+		if (dir.equals(BACKLEFT))
 			dir=BACK;
-		else if (dir.equals(BACKRIGHT))
+		if (dir.equals(BACKRIGHT))
 			dir=FRONT;
-		else if (dir.equals(FRONTLEFT))
+		if (dir.equals(FRONTLEFT))
 			dir=BACK;
-		else if (dir.equals(FRONTRIGHT))
+		if (dir.equals(FRONTRIGHT))
 			dir=FRONT;
 		else
 			EngineLogger.error("LOOKAT: Direction not found - " + dir);
@@ -424,8 +426,8 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	private void lookat(float angle) {
 		((ModelCacheEntry) currentSource).modelInstance.transform.setToRotation(Vector3.Y, angle);
 		modelRotation = angle;
+                ((ModelCacheEntry) currentSource).modelInstance.transform.scale(1f, 1f, flipped);
 	}
-
 	public void setSpriteSize(Vector2 size) {
 		this.width = (int) size.x;
 		this.height = (int) size.y;

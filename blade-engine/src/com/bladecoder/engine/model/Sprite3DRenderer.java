@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright 2014 Rafael Garcia Moreno.
- * Copyright 2018 Yzubi.
+ * Copyright 2019 Yzubi.
  
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

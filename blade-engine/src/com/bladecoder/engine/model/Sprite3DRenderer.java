@@ -23,7 +23,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.OrthographicCamera ;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -79,7 +79,7 @@ public class Sprite3DRenderer extends AnimationRenderer {
 
 	private FrameBuffer fb = null;
 
-	private int width = 200, height = 200;
+	private int width = 2, height = 2;
         private float flipped = 1f;
 	private Vector3 cameraPos;
 	private Vector3 cameraRot;
@@ -107,7 +107,7 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	class ModelCacheEntry extends CacheEntry {
 		ModelInstance modelInstance;
 		AnimationController controller;
-		PerspectiveCamera camera3d;
+		OrthographicCamera camera3d;
 	}
 
 	public Sprite3DRenderer() {
@@ -208,8 +208,8 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		return new Vector2(width, height);
 	}
 
-	private PerspectiveCamera getCamera(ModelInstance modelInstance) {
-		PerspectiveCamera camera3d = new PerspectiveCamera(cameraFOV, width, height);
+	private OrthographicCamera getCamera(ModelInstance modelInstance) {
+		OrthographicCamera camera3d = new OrthographicCamera(width /250f, height /250f);
 
 		if (cameraPos == null) {
 			Node n = null;

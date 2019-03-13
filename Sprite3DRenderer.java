@@ -22,7 +22,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -80,7 +80,7 @@ public class Sprite3DRenderer extends AnimationRenderer {
 
 	private FrameBuffer fb = null;
 
-	private int width = 200, height = 200;
+	private int width = 2, height = 2;
 
         private float flipped = 1f;
 	private Vector3 cameraPos;
@@ -115,7 +115,7 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	class ModelCacheEntry extends CacheEntry {
 		ModelInstance modelInstance;
 		AnimationController controller;
-		PerspectiveCamera camera3d;
+		OrthographicCamera camera3d;
 	}
 
 	public Sprite3DRenderer() {
@@ -231,8 +231,8 @@ public class Sprite3DRenderer extends AnimationRenderer {
 		return new Vector2(width, height);
 	}
 
-	private PerspectiveCamera getCamera(ModelInstance modelInstance) {
-		PerspectiveCamera camera3d = new PerspectiveCamera(cameraFOV, width, height);
+	private OrthographicCamera getCamera(ModelInstance modelInstance) {
+		OrthographicCamera camera3d = new OrthographicCamera(width /250f, height /250f);
 
 		if (cameraPos == null) {
 			Node n = null;
@@ -488,8 +488,8 @@ public class Sprite3DRenderer extends AnimationRenderer {
 	private static final Vector3 tmp = new Vector3();
 
 	@Override
-	public void draw(SpriteBatch batch, float x, float y, float scaleX, float scaleY, float rotation, Color tint) {
-
+public void draw(SpriteBatch batch, float x, float y, float scaleX, float scaleY, float rotation, Color tint) {
+                ((ModelCacheEntry) currentSource).modelInstance.transform.setToRotation(Vector3.Z, rotation);
 		x = x - getWidth() / 2 * scaleX;
 
 		if (USE_FBO) {

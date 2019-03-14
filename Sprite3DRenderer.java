@@ -489,7 +489,9 @@ public class Sprite3DRenderer extends AnimationRenderer {
 
 	@Override
 public void draw(SpriteBatch batch, float x, float y, float scaleX, float scaleY, float rotation, Color tint) {
+/* Experimental rotation
                 ((ModelCacheEntry) currentSource).modelInstance.transform.setToRotation(Vector3.Z, rotation);
+*/
 		x = x - getWidth() / 2 * scaleX;
 
 		if (USE_FBO) {
